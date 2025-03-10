@@ -1,0 +1,81 @@
+# Cline Rules
+
+## Project Intelligence
+
+### Critical Implementation Paths
+- Next.js App Router structure is used for routing and page organization
+- Drizzle ORM is used for database interactions
+- AI integration with RAG middleware for enhanced responses
+- Authentication system in dedicated directory
+- File upload and processing capabilities
+
+### User Preferences and Workflow
+- To be discovered through interaction with the project and user
+
+### Project-Specific Patterns
+- Component organization in the components directory
+- Authentication in the app/(auth) directory
+- Chat functionality in the app/(chat) directory
+- AI integration in the ai directory
+- Database utilities in app/db.ts and schema.ts
+- Utility functions in the utils directory
+
+### Known Challenges
+- To be discovered through interaction with the project
+
+### Evolution of Project Decisions
+- To be tracked as the project evolves
+
+### Tool Usage Patterns
+- Next.js for frontend and API routes
+- Drizzle for database operations
+- TypeScript for type safety
+- Tailwind CSS for styling
+- Custom components for UI elements
+
+## Learning Journal
+
+### Initial Observations
+- Project appears to be a conversational AI application with chat interface
+- Uses Next.js with App Router for modern React architecture
+- Implements RAG for enhanced AI responses
+- Uses Drizzle ORM for database operations
+- Supports file uploads and processing
+- Has authentication system
+
+### Questions to Explore
+- How is the RAG middleware implemented?
+- What specific AI provider is being used?
+- How is authentication handled?
+- What is the database schema structure?
+- How are conversations stored and retrieved?
+- What file types are supported for upload and processing?
+
+### Insights
+- To be added as the project is explored
+
+## Project Navigation
+
+### Key Files
+- app/layout.tsx: Main application layout
+- components/chat.tsx: Main chat interface
+- components/message.tsx: Message component
+- ai/rag-middleware.ts: RAG implementation
+- app/db.ts: Database utilities
+- schema.ts: Database schema
+- utils/pdf.ts: PDF processing utilities
+
+### Important Directories
+- app/: Next.js App Router pages and layouts
+- app/(auth)/: Authentication system
+- app/(chat)/: Chat functionality
+- components/: UI components
+- ai/: AI integration
+- utils/: Utility functions
+- drizzle/: Database migrations and schema
+
+## Code Style Preferences
+- To be discovered through code analysis
+
+## Deployment Considerations
+- To be discovered through project exploration
