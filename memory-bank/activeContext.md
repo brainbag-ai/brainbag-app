@@ -25,6 +25,7 @@
 - Understanding the database schema will be important for future work
 - The authentication system will need to be examined for security considerations
 - File processing capabilities, especially PDF handling, should be explored
+- **Package Installation**: Must use `npm install --legacy-peer-deps` due to peer dependency conflicts
 
 ## Current Questions
 - What specific AI provider is being used?

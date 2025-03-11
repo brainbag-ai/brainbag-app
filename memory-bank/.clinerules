@@ -21,7 +21,7 @@
 - Utility functions in the utils directory
 
 ### Known Challenges
-- To be discovered through interaction with the project
+- Package installation requires `--legacy-peer-deps` flag due to peer dependency conflicts
 
 ### Evolution of Project Decisions
 - To be tracked as the project evolves

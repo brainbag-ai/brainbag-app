@@ -51,6 +51,7 @@
 ### Package Management
 - Uses npm or pnpm (based on package-lock.json and pnpm-lock.yaml)
 - Dependencies defined in package.json
+- **Important**: Must use `npm install --legacy-peer-deps` for installation due to peer dependency conflicts
 
 ## Technical Constraints
 
