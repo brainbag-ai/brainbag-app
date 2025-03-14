@@ -30,11 +30,20 @@
 - Documentation is based on initial analysis and may contain inaccuracies
 - Specific implementation details are not yet documented
 - Technical assumptions need validation through code exploration
-
+- ~~OIDC token hash library error in middleware (fixed)~~
 ## Recent Achievements
 - Created memory bank directory
 - Established core documentation structure
 - Documented initial understanding of project architecture and technologies
+- Fixed authentication issues in Next.js middleware:
+  - Created a simplified auth implementation that doesn't rely on problematic libraries
+  - Updated middleware to avoid Edge Runtime compatibility issues
+  - Fixed cookies() usage in Next.js 15 by properly awaiting the Promise
+  - Created custom API route handlers for auth endpoints
+  - Modified next.config.mjs to add external packages and disable file tracing
+  - Successfully resolved all errors and got the application running
+- Documented initial understanding of project architecture and technologies
+- Fixed middleware error related to OIDC token hash library by excluding authentication routes from Edge Runtime
 
 ## Upcoming Milestones
 - Complete memory bank initialization

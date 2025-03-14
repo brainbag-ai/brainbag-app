@@ -21,6 +21,8 @@ This project appears to follow a modern Next.js application architecture with th
 
 ### Backend Patterns
 - **Middleware**: Uses middleware for request processing (middleware.ts, rag-middleware.ts)
+  - Middleware matcher configured to exclude authentication routes from Edge Runtime to avoid compatibility issues with Node.js-specific libraries
+  - Pattern: `matcher: ['/((?!api/auth|_next/static|_next/image|favicon.ico).*)']`
 - **ORM**: Uses Drizzle ORM for database interactions
 - **Migration System**: Database schema migrations with Drizzle
 - **Environment Configuration**: Uses environment variables for configuration (.env.example)
@@ -50,8 +52,13 @@ This project appears to follow a modern Next.js application architecture with th
 
 ## Authentication Flow
 - Authentication routes and components in `app/(auth)`
-- Likely uses session-based or JWT authentication
+- Custom authentication implementation that avoids Edge Runtime compatibility issues
+- Key components:
+  - Simplified auth() function that checks for session cookies
+  - Custom middleware that skips authentication routes
+  - Proper handling of async cookies() API in Next.js 15
 - Protected routes for authenticated users
+- Authentication routes excluded from Edge Runtime middleware processing
 
 ## Database Schema
 - Uses Drizzle ORM with SQL (based on drizzle directory)

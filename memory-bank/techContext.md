@@ -69,6 +69,18 @@
 - Database design that can handle growing conversation history
 - Efficient AI integration that can scale with usage
 
+### Runtime Environment Limitations
+- Next.js middleware runs in Edge Runtime which has limitations
+- Authentication libraries (especially OIDC/OpenID related) may require Node.js features not available in Edge Runtime
+- Solution approaches:
+  1. Configure middleware matcher to exclude authentication routes from Edge Runtime processing
+  2. Add authentication libraries to serverExternalPackages in next.config.mjs
+  3. Create a custom middleware that doesn't rely on problematic libraries
+  4. Modify auth.ts to handle undefined values safely when destructuring NextAuth exports
+  5. In Next.js 15, cookies() function returns a Promise and must be awaited
+  6. Create custom API route handlers for auth endpoints instead of re-exporting from auth.ts
+  7. Disable file tracing in next.config.mjs to avoid permission issues with .next/trace
+
 ## Dependencies
 Based on the project structure, likely dependencies include:
 
