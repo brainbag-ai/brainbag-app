@@ -56,6 +56,8 @@
   - Implemented per-session user creation with auto-generated usernames
   - Updated all API routes to use the session ID for user identification
   - Modified client components to pass session ID to API routes
+  - Fixed RAG middleware to work with session-based users
+  - Updated AI chat to properly retrieve chunks from the database using session ID
 
 ## Upcoming Milestones
 - Complete memory bank initialization

@@ -1,12 +1,9 @@
-import { auth } from "@/app/(auth)/auth";
-import { getChunksByFilePaths } from "@/app/db";
+import { getChunksByFilePaths, ensureSessionUser } from "@/app/db";
 import { openai } from "@ai-sdk/openai";
 import {
   cosineSimilarity,
   embed,
   Experimental_LanguageModelV1Middleware,
-  generateObject,
-  generateText,
 } from "ai";
 import { z } from "zod";
 
@@ -15,22 +12,22 @@ const selectionSchema = z.object({
   files: z.object({
     selection: z.array(z.string()),
   }),
+  sessionId: z.string().optional(),
 });
 
 export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
   transformParams: async ({ params }) => {
-    const session = await auth();
-
-    if (!session) return params; // no user session
-
     const { prompt: messages, providerMetadata } = params;
 
     // validate the provider metadata with Zod:
     const { success, data } = selectionSchema.safeParse(providerMetadata);
 
-    if (!success) return params; // no files selected
+    if (!success) return params; // invalid metadata
 
     const selection = data.files.selection;
+    const sessionId = data.sessionId;
+
+    if (!sessionId || selection.length === 0) return params; // no session ID or no files selected
 
     const recentMessage = messages.pop();
 
@@ -47,53 +44,48 @@ export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
       .map((content) => content.text)
       .join("\n");
 
-    // Classify the user prompt as whether it requires more context or not
-    const { object: classification } = await generateObject({
-      // fast model for classification:
-      model: openai("gpt-4o-mini", { structuredOutputs: true }),
-      output: "enum",
-      enum: ["question", "statement", "other"],
-      system: "classify the user message as a question, statement, or other",
-      prompt: lastUserMessageContent,
+    // For simplicity, we'll assume all user messages are questions
+    // and skip the classification step
+
+    // Ensure the session user exists
+    const userId = await ensureSessionUser(sessionId);
+    
+    // find relevant chunks based on the selection
+    const chunksBySelection = await getChunksByFilePaths({
+      filePaths: selection.map((path) => `${userId}/${path}`),
     });
 
-    // only use RAG for questions
-    if (classification !== "question") {
+    if (chunksBySelection.length === 0) {
+      // No chunks found, just return the original message
       messages.push(recentMessage);
       return params;
     }
 
-    // Use hypothetical document embeddings:
-    const { text: hypotheticalAnswer } = await generateText({
-      // fast model for generating hypothetical answer:
-      model: openai("gpt-4o-mini", { structuredOutputs: true }),
-      system: "Answer the users question:",
-      prompt: lastUserMessageContent,
+    // For simplicity, we'll use a basic keyword matching approach
+    // instead of embeddings for now
+    const words = lastUserMessageContent.toLowerCase().split(/\s+/);
+    const chunksWithRelevance = chunksBySelection.map(chunk => {
+      const content = chunk.content.toLowerCase();
+      let relevance = 0;
+      
+      // Count how many words from the query appear in the chunk
+      words.forEach(word => {
+        if (word.length > 3 && content.includes(word)) {
+          relevance++;
+        }
+      });
+      
+      return {
+        ...chunk,
+        relevance
+      };
     });
 
-    // Embed the hypothetical answer
-    const { embedding: hypotheticalAnswerEmbedding } = await embed({
-      model: openai.embedding("text-embedding-3-small"),
-      value: hypotheticalAnswer,
-    });
-
-    // find relevant chunks based on the selection
-    const chunksBySelection = await getChunksByFilePaths({
-      filePaths: selection.map((path) => `${session.user?.email}/${path}`),
-    });
-
-    const chunksWithSimilarity = chunksBySelection.map((chunk) => ({
-      ...chunk,
-      similarity: cosineSimilarity(
-        hypotheticalAnswerEmbedding,
-        chunk.embedding,
-      ),
-    }));
-
-    // rank the chunks by similarity and take the top K
-    chunksWithSimilarity.sort((a, b) => b.similarity - a.similarity);
-    const k = 10;
-    const topKChunks = chunksWithSimilarity.slice(0, k);
+    // Sort by relevance
+    chunksWithRelevance.sort((a, b) => b.relevance - a.relevance);
+    
+    // Take top 5 chunks
+    const topChunks = chunksWithRelevance.slice(0, 5);
 
     // add the chunks to the last user message
     messages.push({
@@ -104,7 +96,7 @@ export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
           type: "text",
           text: "Here is some relevant information that you can use to answer the question:",
         },
-        ...topKChunks.map((chunk) => ({
+        ...topChunks.map((chunk) => ({
           type: "text" as const,
           text: chunk.content,
         })),

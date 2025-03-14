@@ -21,6 +21,7 @@ export async function POST(request: Request) {
       files: {
         selection: selectedFilePathnames,
       },
+      sessionId: sessionId,
     },
     onFinish: async ({ text }) => {
       await createMessage({
