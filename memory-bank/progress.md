@@ -32,6 +32,16 @@
 - Technical assumptions need validation through code exploration
 - ~~OIDC token hash library error in middleware (fixed)~~
 ## Recent Achievements
+- Implemented proper embeddings for chat chunk logic:
+  - Updated createMessage function to use real embeddings instead of placeholder zeros
+  - Modified RAG middleware to use vector similarity search instead of keyword matching
+  - Used OpenAI's text-embedding-3-small model for consistent embedding generation
+  - Added proper error handling for embedding generation
+  - Fixed issue with user messages not being saved to the database by updating the chat API route
+  - Improved the chat API route to correctly process only the user's new message
+  - Fixed a bug where the user's message wasn't being properly stored in the chunk table
+  - Ensured both user and assistant messages are properly embedded and stored
+  - Noted potential future enhancements: adjustable similarity thresholds, different similarity metrics, and filtering/weighting of chunks based on metadata
 - Added user chat messages to the RAG system:
   - Updated database schema to add chatId and userId fields to the chunk table
   - Modified createMessage function to add messages to the chunk table with dummy embeddings

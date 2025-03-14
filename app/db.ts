@@ -3,7 +3,8 @@ import { desc, eq, inArray, or, and, isNull } from "drizzle-orm";
 import postgres from "postgres";
 import { genSaltSync, hashSync } from "bcrypt-ts";
 import { chat, chunk, user } from "@/schema";
-import { embed } from "ai";
+import { embed, embedMany } from "ai";
+import { openai } from "@ai-sdk/openai";
 import { v4 as uuidv4 } from "uuid";
 import { Message } from "ai";
 
@@ -91,20 +92,38 @@ export async function createMessage({
       
       // Only add to chunks if the message has meaningful content
       if (messageContent.length > 0) {
-        // Create a simple array of zeros for the embedding
-        // This is a placeholder - in a production environment, you would use a proper embedding model
-        const dummyEmbedding = Array(1536).fill(0);
-        
-        // Create a chunk for the message
-        await db.insert(chunk).values({
-          id: `chat-${id}-${messages.length}`,
-          filePath: null,
-          chatId: id,
-          content: messageContent,
-          embedding: dummyEmbedding,
-          createdAt: now,
-          userId: author
-        });
+        try {
+          // Generate a real embedding for the message content using embedMany for consistency
+          const { embeddings } = await embedMany({
+            model: openai.embedding("text-embedding-3-small"),
+            values: [messageContent],
+          });
+          
+          // Create a chunk for the message with the real embedding
+          await db.insert(chunk).values({
+            id: `chat-${id}-${messages.length}`,
+            filePath: null,
+            chatId: id,
+            content: messageContent,
+            embedding: embeddings[0],
+            createdAt: now,
+            userId: author
+          });
+        } catch (embeddingError) {
+          console.error("Error generating embedding:", embeddingError);
+          // If embedding fails, fall back to a dummy embedding
+          const dummyEmbedding = Array(1536).fill(0);
+          
+          await db.insert(chunk).values({
+            id: `chat-${id}-${messages.length}`,
+            filePath: null,
+            chatId: id,
+            content: messageContent,
+            embedding: dummyEmbedding,
+            createdAt: now,
+            userId: author
+          });
+        }
       }
     } catch (error) {
       console.error("Error adding message to chunks:", error);

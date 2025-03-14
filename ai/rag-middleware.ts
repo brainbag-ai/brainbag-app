@@ -3,6 +3,7 @@ import { openai } from "@ai-sdk/openai";
 import {
   cosineSimilarity,
   embed,
+  embedMany,
   Experimental_LanguageModelV1Middleware,
 } from "ai";
 import { z } from "zod";
@@ -62,31 +63,28 @@ export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
       return params;
     }
 
-    // For simplicity, we'll use a basic keyword matching approach
-    // instead of embeddings for now
-    const words = lastUserMessageContent.toLowerCase().split(/\s+/);
-    const chunksWithRelevance = chunksBySelection.map(chunk => {
-      const content = chunk.content.toLowerCase();
-      let relevance = 0;
-      
-      // Count how many words from the query appear in the chunk
-      words.forEach(word => {
-        if (word.length > 3 && content.includes(word)) {
-          relevance++;
-        }
-      });
+    // Generate embedding for the user's question
+    const { embeddings: questionEmbedding } = await embedMany({
+      model: openai.embedding("text-embedding-3-small"),
+      values: [lastUserMessageContent],
+    });
+
+    // Calculate similarity scores for each chunk
+    const chunksWithSimilarity = chunksBySelection.map(chunk => {
+      // Calculate cosine similarity between the question embedding and the chunk embedding
+      const similarity = cosineSimilarity(questionEmbedding[0], chunk.embedding);
       
       return {
         ...chunk,
-        relevance
+        similarity
       };
     });
 
-    // Sort by relevance
-    chunksWithRelevance.sort((a, b) => b.relevance - a.relevance);
+    // Sort by similarity (highest first)
+    chunksWithSimilarity.sort((a, b) => b.similarity - a.similarity);
     
     // Take top 5 chunks
-    const topChunks = chunksWithRelevance.slice(0, 5);
+    const topChunks = chunksWithSimilarity.slice(0, 5);
 
     // add the chunks to the last user message
     messages.push({
