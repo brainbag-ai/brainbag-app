@@ -1,4 +1,4 @@
-import { getChunksByFilePaths, ensureSessionUser } from "@/app/db";
+import { getChunksByFilePaths, ensureSessionUser, getChunksByUserId } from "@/app/db";
 import { openai } from "@ai-sdk/openai";
 import {
   cosineSimilarity,
@@ -50,9 +50,10 @@ export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
     // Ensure the session user exists
     const userId = await ensureSessionUser(sessionId);
     
-    // find relevant chunks based on the selection
+    // find relevant chunks based on the selection and include user's chat history
     const chunksBySelection = await getChunksByFilePaths({
       filePaths: selection.map((path) => `${userId}/${path}`),
+      userId: userId, // Include chat chunks from this user
     });
 
     if (chunksBySelection.length === 0) {

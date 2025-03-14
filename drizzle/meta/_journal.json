@@ -8,6 +8,13 @@
       "when": 1726832743574,
       "tag": "0000_pretty_dracula",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1726832878000,
+      "tag": "0001_update_chunk_table",
+      "breakpoints": true
     }
   ]
 }

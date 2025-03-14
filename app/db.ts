@@ -1,8 +1,11 @@
 import { drizzle } from "drizzle-orm/postgres-js";
-import { desc, eq, inArray } from "drizzle-orm";
+import { desc, eq, inArray, or, and, isNull } from "drizzle-orm";
 import postgres from "postgres";
 import { genSaltSync, hashSync } from "bcrypt-ts";
 import { chat, chunk, user } from "@/schema";
+import { embed } from "ai";
+import { v4 as uuidv4 } from "uuid";
+import { Message } from "ai";
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
@@ -44,22 +47,73 @@ export async function createMessage({
   author: string;
 }) {
   const selectedChats = await db.select().from(chat).where(eq(chat.id, id));
-
-  if (selectedChats.length > 0) {
-    return await db
+  const now = new Date();
+  
+  // First, ensure the chat record exists in the database
+  let chatExists = selectedChats.length > 0;
+  
+  if (!chatExists) {
+    // Insert the chat record first
+    await db.insert(chat).values({
+      id,
+      createdAt: now,
+      messages: JSON.stringify(messages),
+      author,
+    });
+    chatExists = true;
+  } else {
+    // Update the existing chat record
+    await db
       .update(chat)
       .set({
         messages: JSON.stringify(messages),
       })
       .where(eq(chat.id, id));
   }
+  
+  // Now that we're sure the chat record exists, we can add the message to chunks
+  const lastMessage = messages[messages.length - 1];
+  
+  if (lastMessage && chatExists) {
+    try {
+      // Generate embedding for the message content
+      let messageContent = '';
+      
+      if (typeof lastMessage.content === 'string') {
+        messageContent = lastMessage.content;
+      } else if (Array.isArray(lastMessage.content)) {
+        // Extract text content from message parts
+        messageContent = lastMessage.content
+          .filter((part: any) => part.type === 'text')
+          .map((part: any) => part.text)
+          .join('\n');
+      }
+      
+      // Only add to chunks if the message has meaningful content
+      if (messageContent.length > 0) {
+        // Create a simple array of zeros for the embedding
+        // This is a placeholder - in a production environment, you would use a proper embedding model
+        const dummyEmbedding = Array(1536).fill(0);
+        
+        // Create a chunk for the message
+        await db.insert(chunk).values({
+          id: `chat-${id}-${messages.length}`,
+          filePath: null,
+          chatId: id,
+          content: messageContent,
+          embedding: dummyEmbedding,
+          createdAt: now,
+          userId: author
+        });
+      }
+    } catch (error) {
+      console.error("Error adding message to chunks:", error);
+      // Continue with saving the message even if embedding fails
+    }
+  }
 
-  return await db.insert(chat).values({
-    id,
-    createdAt: new Date(),
-    messages: JSON.stringify(messages),
-    author,
-  });
+  // Return success
+  return { success: true };
 }
 
 export async function getChatsByUser({ email }: { email: string }) {
@@ -81,13 +135,44 @@ export async function insertChunks({ chunks }: { chunks: any[] }) {
 
 export async function getChunksByFilePaths({
   filePaths,
+  userId,
 }: {
   filePaths: Array<string>;
+  userId?: string;
 }) {
+  // If userId is provided, also include chat chunks from that user
+  if (userId) {
+    return await db
+      .select()
+      .from(chunk)
+      .where(
+        or(
+          inArray(chunk.filePath, filePaths),
+          and(
+            eq(chunk.userId, userId),
+            isNull(chunk.filePath)
+          )
+        )
+      );
+  }
+  
+  // Otherwise, just return file chunks
   return await db
     .select()
     .from(chunk)
     .where(inArray(chunk.filePath, filePaths));
+}
+
+// Get chunks by user ID (for chat history)
+export async function getChunksByUserId({
+  userId,
+}: {
+  userId: string;
+}) {
+  return await db
+    .select()
+    .from(chunk)
+    .where(eq(chunk.userId, userId));
 }
 
 export async function deleteChunksByFilePath({

@@ -25,9 +25,12 @@ export const chat = pgTable("Chat", {
 
 export const chunk = pgTable("Chunk", {
   id: text("id").primaryKey().notNull(),
-  filePath: text("filePath").notNull(),
+  filePath: text("filePath"),
+  chatId: text("chatId").references(() => chat.id),
   content: text("content").notNull(),
   embedding: real("embedding").array().notNull(),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  userId: varchar("userId", { length: 64 }).references(() => user.email),
 });
 
 export type Chat = Omit<InferSelectModel<typeof chat>, "messages"> & {

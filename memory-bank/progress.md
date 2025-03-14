@@ -32,6 +32,15 @@
 - Technical assumptions need validation through code exploration
 - ~~OIDC token hash library error in middleware (fixed)~~
 ## Recent Achievements
+- Added user chat messages to the RAG system:
+  - Updated database schema to add chatId and userId fields to the chunk table
+  - Modified createMessage function to add messages to the chunk table with dummy embeddings
+  - Updated RAG middleware to include chat chunks in the relevance calculation
+  - Added functions to get chunks by user ID
+  - Created manual SQL migration to update the database schema
+  - Fixed embedding generation issue by using a placeholder embedding array
+  - Successfully applied database schema changes using manual migration
+  - Fixed foreign key constraint issue by ensuring chat records exist before adding chunks
 - Created memory bank directory
 - Established core documentation structure
 - Documented initial understanding of project architecture and technologies
