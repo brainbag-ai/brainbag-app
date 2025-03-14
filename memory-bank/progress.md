@@ -40,6 +40,8 @@
   - Fixed issue with user messages not being saved to the database by updating the chat API route
   - Improved the chat API route to correctly process only the user's new message
   - Fixed a bug where the user's message wasn't being properly stored in the chunk table
+  - Enhanced the RAG middleware to retrieve user's chat history even when no files are selected
+  - Implemented cross-chat memory by using all user's previous chat chunks for context
   - Ensured both user and assistant messages are properly embedded and stored
   - Noted potential future enhancements: adjustable similarity thresholds, different similarity metrics, and filtering/weighting of chunks based on metadata
 - Added user chat messages to the RAG system:

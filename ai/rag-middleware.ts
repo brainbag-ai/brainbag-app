@@ -27,8 +27,7 @@ export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
 
     const selection = data.files.selection;
     const sessionId = data.sessionId;
-
-    if (!sessionId || selection.length === 0) return params; // no session ID or no files selected
+    if (!sessionId) return params; // no session ID
 
     const recentMessage = messages.pop();
 
@@ -50,14 +49,21 @@ export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
 
     // Ensure the session user exists
     const userId = await ensureSessionUser(sessionId);
+    // Get chunks based on the user's selection and chat history
+    let chunks = [];
     
-    // find relevant chunks based on the selection and include user's chat history
-    const chunksBySelection = await getChunksByFilePaths({
-      filePaths: selection.map((path) => `${userId}/${path}`),
-      userId: userId, // Include chat chunks from this user
-    });
+    if (selection.length > 0) {
+      // If files are selected, get chunks from those files plus chat history
+      chunks = await getChunksByFilePaths({
+        filePaths: selection.map((path) => `${userId}/${path}`),
+        userId: userId, // Include chat chunks from this user
+      });
+    } else {
+      // If no files are selected, just get the user's chat history chunks
+      chunks = await getChunksByUserId({ userId });
+    }
 
-    if (chunksBySelection.length === 0) {
+    if (chunks.length === 0) {
       // No chunks found, just return the original message
       messages.push(recentMessage);
       return params;
@@ -70,7 +76,7 @@ export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
     });
 
     // Calculate similarity scores for each chunk
-    const chunksWithSimilarity = chunksBySelection.map(chunk => {
+    const chunksWithSimilarity = chunks.map(chunk => {
       // Calculate cosine similarity between the question embedding and the chunk embedding
       const similarity = cosineSimilarity(questionEmbedding[0], chunk.embedding);
       
