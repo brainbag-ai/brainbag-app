@@ -9,8 +9,9 @@ import {
   UncheckedSquare,
   UploadIcon,
 } from "./icons";
-import { Dispatch, SetStateAction, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useRef, useState, useEffect } from "react";
 import { fetcher } from "@/utils/functions";
+import { SESSION_ID_KEY } from "@/utils/constants";
 import cx from "classnames";
 import { motion } from "framer-motion";
 import { useOnClickOutside, useWindowSize } from "usehooks-ts";
@@ -27,6 +28,14 @@ export const Files = ({
   const inputFileRef = useRef<HTMLInputElement>(null);
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
   const [deleteQueue, setDeleteQueue] = useState<Array<string>>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  
+  // Get the session ID from localStorage when component mounts
+  useEffect(() => {
+    const storedSessionId = localStorage.getItem(SESSION_ID_KEY);
+    setSessionId(storedSessionId);
+  }, []);
+  
   const {
     data: files,
     mutate,
@@ -35,7 +44,7 @@ export const Files = ({
     Array<{
       pathname: string;
     }>
-  >("api/files/list", fetcher, {
+  >(sessionId ? `api/files/list?sessionId=${sessionId}` : null, fetcher, {
     fallbackData: [],
   });
 
@@ -95,7 +104,7 @@ export const Files = ({
               if (file) {
                 setUploadQueue((currentQueue) => [...currentQueue, file.name]);
 
-                await fetch(`/api/files/upload?filename=${file.name}`, {
+                await fetch(`/api/files/upload?filename=${file.name}&sessionId=${sessionId}`, {
                   method: "POST",
                   body: file,
                 });
@@ -208,7 +217,7 @@ export const Files = ({
                     file.pathname,
                   ]);
 
-                  await fetch(`/api/files/delete?fileurl=${file.url}`, {
+                  await fetch(`/api/files/delete?fileurl=${file.url}&sessionId=${sessionId}`, {
                     method: "DELETE",
                   });
 

@@ -5,7 +5,7 @@ import { getUser } from "@/app/db";
 export async function auth() {
   // Check for session cookie
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("next-auth.session-token");
+  const sessionCookie = cookieStore.get("auth-session");
   
   if (!sessionCookie) {
     return null;
@@ -22,9 +22,9 @@ export async function auth() {
 }
 
 // Simplified sign in function
-export async function signIn(credentials: { email: string; password: string }) {
+export async function signIn(email: string, password: string) {
   try {
-    const user = await getUser(credentials.email);
+    const user = await getUser(email);
     // In a real implementation, you would verify the password
     return { success: true, user: user[0] };
   } catch (error) {

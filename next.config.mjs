@@ -2,9 +2,7 @@
 const nextConfig = {
   // Add external packages that need to be transpiled
   serverExternalPackages: [
-    "pdf-parse", 
-    "oidc-token-hash", 
-    "openid-client"
+    "pdf-parse"
   ],
   // Disable tracing to avoid permission issues
   experimental: {

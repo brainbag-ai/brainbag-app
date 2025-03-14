@@ -25,7 +25,6 @@
     "framer-motion": "^11.3.19",
     "inngest": "^3.32.4",
     "next": "^15.2.2",
-    "next-auth": "^4.24.11",
     "pdf-parse": "^1.1.1",
     "postgres": "^3.4.4",
     "react": "19.0.0-rc-de68d2f4-20241204",

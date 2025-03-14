@@ -21,6 +21,19 @@ export async function createUser(email: string, password: string) {
   return await db.insert(user).values({ email, password: hash });
 }
 
+// Ensure a user exists for the given session ID
+export async function ensureSessionUser(sessionId: string) {
+  const users = await getUser(sessionId);
+  
+  if (users.length === 0) {
+    // Create a new user for this session with a random password
+    const randomPassword = Math.random().toString(36).slice(-8);
+    await createUser(sessionId, randomPassword);
+  }
+  
+  return sessionId;
+}
+
 export async function createMessage({
   id,
   messages,

@@ -1,21 +1,16 @@
-import { auth } from "@/app/(auth)/auth";
-import { deleteChunksByFilePath } from "@/app/db";
+import { deleteChunksByFilePath, ensureSessionUser } from "@/app/db";
 import { head, del } from "@vercel/blob";
 
 export async function DELETE(request: Request) {
   const { searchParams } = new URL(request.url);
-
-  let session = await auth();
-
-  if (!session) {
-    return Response.redirect("/login");
+  const sessionId = searchParams.get("sessionId");
+  
+  if (!sessionId) {
+    return new Response("Session ID is required", { status: 400 });
   }
-
-  const { user } = session;
-
-  if (!user || !user.email) {
-    return Response.redirect("/login");
-  }
+  
+  // Ensure the session user exists
+  const userId = await ensureSessionUser(sessionId);
 
   if (request.body === null) {
     return new Response("Request body is empty", { status: 400 });
@@ -29,7 +24,7 @@ export async function DELETE(request: Request) {
 
   const { pathname } = await head(fileurl);
 
-  if (!pathname.startsWith(user.email)) {
+  if (!pathname.startsWith(userId)) {
     return new Response("Unauthorized", { status: 400 });
   }
 

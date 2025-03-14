@@ -1,5 +1,4 @@
-import { auth } from "@/app/(auth)/auth";
-import { insertChunks } from "@/app/db";
+import { insertChunks, ensureSessionUser } from "@/app/db";
 import { getPdfContentFromUrl } from "@/utils/pdf";
 import { openai } from "@ai-sdk/openai";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
@@ -9,24 +8,20 @@ import { embedMany } from "ai";
 export async function POST(request: Request) {
   const { searchParams } = new URL(request.url);
   const filename = searchParams.get("filename");
-
-  let session = await auth();
-
-  if (!session) {
-    return Response.redirect("/login");
+  const sessionId = searchParams.get("sessionId");
+  
+  if (!sessionId) {
+    return new Response("Session ID is required", { status: 400 });
   }
-
-  const { user } = session;
-
-  if (!user) {
-    return Response.redirect("/login");
-  }
+  
+  // Ensure the session user exists
+  const userId = await ensureSessionUser(sessionId);
 
   if (request.body === null) {
     return new Response("Request body is empty", { status: 400 });
   }
 
-  const { downloadUrl } = await put(`${user.email}/${filename}`, request.body, {
+  const { downloadUrl } = await put(`${userId}/${filename}`, request.body, {
     access: "public",
   });
 
@@ -43,8 +38,8 @@ export async function POST(request: Request) {
 
   await insertChunks({
     chunks: chunkedContent.map((chunk, i) => ({
-      id: `${user.email}/${filename}/${i}`,
-      filePath: `${user.email}/${filename}`,
+      id: `${userId}/${filename}/${i}`,
+      filePath: `${userId}/${filename}`,
       content: chunk.pageContent,
       embedding: embeddings[i],
     })),

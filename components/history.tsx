@@ -9,20 +9,33 @@ import cx from "classnames";
 import { useParams, usePathname } from "next/navigation";
 import { Chat } from "@/schema";
 import { fetcher } from "@/utils/functions";
+import { SESSION_ID_KEY } from "@/utils/constants";
 
 export const History = () => {
   const { id } = useParams();
   const pathname = usePathname();
 
   const [isHistoryVisible, setIsHistoryVisible] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  
+  // Get the session ID from localStorage when component mounts
+  useEffect(() => {
+    const storedSessionId = localStorage.getItem(SESSION_ID_KEY);
+    setSessionId(storedSessionId);
+  }, []);
+  
   const {
     data: history,
     error,
     isLoading,
     mutate,
-  } = useSWR<Array<Chat>>("/api/history", fetcher, {
-    fallbackData: [],
-  });
+  } = useSWR<Array<Chat>>(
+    sessionId ? `/api/history?sessionId=${sessionId}` : null,
+    fetcher,
+    {
+      fallbackData: [],
+    }
+  );
 
   useEffect(() => {
     mutate();

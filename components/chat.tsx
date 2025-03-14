@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { FileIcon } from "@/components/icons";
 import { Message as PreviewMessage } from "@/components/message";
 import { useScrollToBottom } from "@/components/use-scroll-to-bottom";
-import { Session } from "next-auth";
+import { generateSessionId, SESSION_ID_KEY } from "@/utils/constants";
 
 const suggestedActions = [
   {
@@ -26,45 +26,60 @@ const suggestedActions = [
 export function Chat({
   id,
   initialMessages,
-  session,
 }: {
   id: string;
   initialMessages: Array<Message>;
-  session: Session | null;
 }) {
+  // State to store the session ID
+  const [sessionId, setSessionId] = useState<string>("");
+  
   const [selectedFilePathnames, setSelectedFilePathnames] = useState<
     Array<string>
   >([]);
   const [isFilesVisible, setIsFilesVisible] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
+  // Initialize or retrieve the session ID when the component mounts
   useEffect(() => {
-    if (isMounted !== false && session && session.user) {
-      localStorage.setItem(
-        `${session.user.email}/selected-file-pathnames`,
-        JSON.stringify(selectedFilePathnames),
-      );
+    let storedSessionId = localStorage.getItem(SESSION_ID_KEY);
+    
+    if (!storedSessionId) {
+      storedSessionId = generateSessionId();
+      localStorage.setItem(SESSION_ID_KEY, storedSessionId);
     }
-  }, [selectedFilePathnames, isMounted, session]);
+    
+    setSessionId(storedSessionId);
+  }, []);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
+  
+  // Save selected file pathnames to localStorage
   useEffect(() => {
-    if (session && session.user) {
+    if (isMounted !== false && sessionId) {
+      localStorage.setItem(
+        `${sessionId}/selected-file-pathnames`,
+        JSON.stringify(selectedFilePathnames),
+      );
+    }
+  }, [selectedFilePathnames, isMounted, sessionId]);
+
+  // Load selected file pathnames from localStorage when session ID changes
+  useEffect(() => {
+    if (sessionId) {
       setSelectedFilePathnames(
         JSON.parse(
           localStorage.getItem(
-            `${session.user.email}/selected-file-pathnames`,
+            `${sessionId}/selected-file-pathnames`,
           ) || "[]",
         ),
       );
     }
-  }, [session]);
+  }, [sessionId]);
 
   const { messages, handleSubmit, input, setInput, append } = useChat({
-    body: { id, selectedFilePathnames },
+    body: { id, selectedFilePathnames, sessionId },
     initialMessages,
     onFinish: () => {
       window.history.replaceState({}, "", `/${id}`);
@@ -124,7 +139,7 @@ export function Chat({
         )}
 
         <form
-          className="flex flex-row gap-2 relative items-center w-full md:max-w-[500px] max-w-[calc(100dvw-32px) px-4 md:px-0"
+          className="flex flex-row gap-2 relative items-center w-full md:max-w-[500px] max-w-[calc(100dvw-32px)] px-4 md:px-0"
           onSubmit={handleSubmit}
         >
           <input

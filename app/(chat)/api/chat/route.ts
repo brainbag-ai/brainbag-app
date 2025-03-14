@@ -1,16 +1,16 @@
 import { customModel } from "@/ai";
-import { auth } from "@/app/(auth)/auth";
-import { createMessage } from "@/app/db";
+import { createMessage, ensureSessionUser } from "@/app/db";
 import { streamText } from "ai";
 
 export async function POST(request: Request) {
-  const { id, messages, selectedFilePathnames } = await request.json();
-
-  const session = await auth();
-
-  if (!session) {
-    return new Response("Unauthorized", { status: 401 });
+  const { id, messages, selectedFilePathnames, sessionId } = await request.json();
+  
+  if (!sessionId) {
+    return new Response("Session ID is required", { status: 400 });
   }
+  
+  // Ensure the session user exists
+  const userId = await ensureSessionUser(sessionId);
 
   const result = streamText({
     model: customModel,
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       await createMessage({
         id,
         messages: [...messages, { role: "assistant", content: text }],
-        author: session.user?.email!,
+        author: userId,
       });
     },
     experimental_telemetry: {
