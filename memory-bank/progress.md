@@ -32,6 +32,13 @@
 - Technical assumptions need validation through code exploration
 - ~~OIDC token hash library error in middleware (fixed)~~
 ## Recent Achievements
+- Updated system prompt to inform AI about message recording:
+  - Modified the system prompt in the chat API route to inform the AI that all user messages are being recorded
+  - Added explicit information about the RAG system's ability to retrieve past conversations
+  - Instructed the AI that it can confidently refer to information from previous conversations
+  - Maintained the friendly, concise tone of the original system prompt
+  - Updated console logging to match the new system prompt
+
 - Created a command line utility for cleaning up application data:
   - Implemented a TypeScript script (cleanup.ts) to delete chunks, chats, files, and optionally users
   - Added command line options for preserving user accounts and dry run mode

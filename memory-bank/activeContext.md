@@ -10,6 +10,7 @@
 - Updated the createMessage function to filter messages by role
 - Maintained all messages in the chat record while optimizing the chunks table
 - Documented the changes in the memory bank
+- Updated the system prompt to inform the AI that all user messages are being recorded and can be retrieved for context
 
 ## Next Steps
 - Complete memory bank initialization with progress.md

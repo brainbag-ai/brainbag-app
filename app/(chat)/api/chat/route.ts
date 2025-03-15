@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 
   // Log the initial request parameters before they're processed by middleware
   try {
-    console.log("Initial API Request - System:", "you are a friendly assistant! keep your responses concise and helpful.");
+    console.log("Initial API Request - System:", "You are a friendly assistant! Keep your responses concise and helpful.\n\nIMPORTANT: All user messages are being recorded in the database and can be retrieved for context. The system uses RAG (Retrieval-Augmented Generation) to automatically find and provide relevant information from past conversations when needed. You can confidently refer to information from previous conversations, as the system will ensure you have access to relevant context through the RAG middleware.");
     console.log("Initial API Request - Messages:", JSON.stringify(messages, null, 2));
     console.log("Initial API Request - Selected Files:", JSON.stringify(selectedFilePathnames, null, 2));
     console.log("Initial API Request - Session ID:", sessionId);
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
   const result = streamText({
     model: customModel,
     system:
-      "you are a friendly assistant! keep your responses concise and helpful.",
+      "You are a friendly assistant! Keep your responses concise and helpful.\n\nIMPORTANT: All user messages are being recorded in the database and can be retrieved for context. The system uses RAG (Retrieval-Augmented Generation) to automatically find and provide relevant information from past conversations when needed. You can confidently refer to information from previous conversations, as the system will ensure you have access to relevant context through the RAG middleware.",
     messages,
     experimental_providerMetadata: {
       files: {
