@@ -32,6 +32,13 @@
 - Technical assumptions need validation through code exploration
 - ~~OIDC token hash library error in middleware (fixed)~~
 ## Recent Achievements
+- Created a command line utility for cleaning up application data:
+  - Implemented a TypeScript script (cleanup.ts) to delete chunks, chats, files, and optionally users
+  - Added command line options for preserving user accounts and dry run mode
+  - Added detailed help documentation for the command
+  - Integrated with the existing database and Vercel Blob storage
+  - Added as an npm script for easy execution: `npm run cleanup`
+
 - Modified RAG system to store only user messages in chunks table:
   - Updated createMessage function to only add messages to the chunks table if they are from the user (role === 'user')
   - Kept all other functionality intact, including storing both user and assistant messages in the chat record
