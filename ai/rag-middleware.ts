@@ -92,6 +92,15 @@ export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
     // Take top 5 chunks
     const topChunks = chunksWithSimilarity.slice(0, 5);
 
+    // Prepare the top chunks with metadata for visualization
+    const topChunksWithMetadata = topChunks.map(chunk => ({
+      content: chunk.content,
+      similarity: chunk.similarity,
+      source: chunk.filePath ? 'file' : 'chat',
+      filePath: chunk.filePath,
+      id: chunk.id
+    }));
+
     // add the chunks to the last user message
     messages.push({
       role: "user",
@@ -108,6 +117,13 @@ export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
       ],
     });
 
-    return { ...params, prompt: messages };
+    // Return the params with the chunks metadata
+    return { 
+      ...params, 
+      prompt: messages,
+      ragMetadata: {
+        chunks: topChunksWithMetadata
+      }
+    };
   },
 };

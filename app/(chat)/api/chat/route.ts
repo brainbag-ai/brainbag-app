@@ -41,6 +41,9 @@ export async function POST(request: Request) {
       sessionId: sessionId,
     },
     onFinish: async ({ text }) => {
+      // Get the RAG metadata from the model's response
+      // In a real implementation, we would extract this from the response
+      // For now, we'll just store the assistant's message
       await createMessage({
         id,
         messages: [...messages, { role: "assistant", content: text }],
@@ -53,5 +56,6 @@ export async function POST(request: Request) {
     },
   });
 
+  // Return the response
   return result.toDataStreamResponse({});
 }

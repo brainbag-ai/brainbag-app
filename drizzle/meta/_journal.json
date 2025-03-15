@@ -15,6 +15,13 @@
       "when": 1726832878000,
       "tag": "0001_update_chunk_table",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1726832900000,
+      "tag": "0002_add_metadata_to_chat",
+      "breakpoints": true
     }
   ]
 }

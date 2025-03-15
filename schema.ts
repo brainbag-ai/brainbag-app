@@ -18,6 +18,7 @@ export const chat = pgTable("Chat", {
   id: text("id").primaryKey().notNull(),
   createdAt: timestamp("createdAt").notNull(),
   messages: json("messages").notNull(),
+  metadata: json("metadata"),
   author: varchar("author", { length: 64 })
     .notNull()
     .references(() => user.email),
