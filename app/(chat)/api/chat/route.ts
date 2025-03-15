@@ -29,6 +29,16 @@ export async function POST(request: Request) {
     });
   }
 
+  // Log the initial request parameters before they're processed by middleware
+  try {
+    console.log("Initial API Request - System:", "you are a friendly assistant! keep your responses concise and helpful.");
+    console.log("Initial API Request - Messages:", JSON.stringify(messages, null, 2));
+    console.log("Initial API Request - Selected Files:", JSON.stringify(selectedFilePathnames, null, 2));
+    console.log("Initial API Request - Session ID:", sessionId);
+  } catch (error) {
+    console.log("Error logging Initial API Request:", error);
+  }
+
   const result = streamText({
     model: customModel,
     system:

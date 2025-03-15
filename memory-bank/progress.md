@@ -32,6 +32,10 @@
 - Technical assumptions need validation through code exploration
 - ~~OIDC token hash library error in middleware (fixed)~~
 ## Recent Achievements
+- Modified RAG system to store only user messages in chunks table:
+  - Updated createMessage function to only add messages to the chunks table if they are from the user (role === 'user')
+  - Kept all other functionality intact, including storing both user and assistant messages in the chat record
+  - Ensured the RAG system will only use user messages for context retrieval
 - Implemented proper embeddings for chat chunk logic:
   - Updated createMessage function to use real embeddings instead of placeholder zeros
   - Modified RAG middleware to use vector similarity search instead of keyword matching

@@ -117,6 +117,21 @@ export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
       ],
     });
 
+    // Log the exact prompt that will be sent to the OpenAI API
+    // Use a safer approach to avoid circular references
+    try {
+      console.log("OpenAI API Prompt - Messages:", JSON.stringify(messages, null, 2));
+      console.log("OpenAI API Prompt - Parameters:", JSON.stringify({
+        temperature: params.temperature,
+        maxTokens: params.maxTokens,
+        topP: params.topP,
+        presencePenalty: params.presencePenalty,
+        frequencyPenalty: params.frequencyPenalty
+      }, null, 2));
+    } catch (error) {
+      console.log("Error logging OpenAI API Prompt:", error);
+    }
+
     // Return the params with the chunks metadata
     return { 
       ...params, 

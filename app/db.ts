@@ -88,7 +88,8 @@ export async function createMessage({
   // Now that we're sure the chat record exists, we can add the message to chunks
   const lastMessage = messages[messages.length - 1];
   
-  if (lastMessage && chatExists) {
+  // Only add user messages to the chunks table, not assistant responses
+  if (lastMessage && chatExists && lastMessage.role === 'user') {
     try {
       // Generate embedding for the message content
       let messageContent = '';
