@@ -12,6 +12,12 @@ export const Navbar = async () => {
         <div className="text-sm dark:text-zinc-300">
           Internal Knowledge Base
         </div>
+        <Link
+          href="/inngest-test"
+          className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-100 dark:hover:bg-blue-800"
+        >
+          Inngest Test
+        </Link>
       </div>
 
       {session ? (

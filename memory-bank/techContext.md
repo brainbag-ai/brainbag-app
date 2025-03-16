@@ -26,6 +26,13 @@
 - File upload and processing capabilities
 - PDF processing utilities (utils/pdf.ts)
 
+### Background Processing
+- **Inngest**: Background job and event processing system
+- Functions defined in `inngest/functions.ts`
+- API route for Inngest webhook at `app/api/inngest/route.ts`
+- Test endpoints at `app/api/test-inngest/route.ts` and `app/api/test-process-data/route.ts`
+- Test UI at `app/inngest-test/page.tsx`
+
 ### Development Tools
 - **ESLint**: JavaScript linting (based on .eslintrc.json)
 - **PostCSS**: CSS processing tool
@@ -92,5 +99,6 @@ Based on the project structure, likely dependencies include:
 - AI libraries (possibly OpenAI, Anthropic, or similar)
 - File processing libraries
 - Authentication libraries
+- Inngest (for background job processing)
 
 Specific versions and additional dependencies would be listed in package.json.
