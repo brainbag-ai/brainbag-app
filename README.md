@@ -84,7 +84,13 @@ BrainBag is a modern, AI-powered knowledge base application built with Next.js a
    pnpm run dev
    ```
 
-6. Open [http://localhost:3000](http://localhost:3000) in your browser.
+6. In a separate terminal, start the Inngest dev server:
+   ```bash
+   npx inngest-cli@latest dev
+   ```
+   This is required for background job processing and asynchronous tasks.
+
+7. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## How It Works
 
@@ -128,6 +134,24 @@ npm run migrate
 # or
 pnpm run migrate
 ```
+
+### Running the Inngest Dev Server
+
+Inngest is used for background job processing in the application. To develop and test Inngest functions locally:
+
+1. Start your Next.js application:
+   ```bash
+   npm run dev
+   # or
+   pnpm run dev
+   ```
+
+2. In a separate terminal, run the Inngest dev server:
+   ```bash
+   npx inngest-cli@latest dev
+   ```
+
+3. Open the Inngest dev dashboard at [http://localhost:8288](http://localhost:8288) to view events and function executions.
 
 ## License
 

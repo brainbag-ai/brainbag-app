@@ -2,13 +2,14 @@
 
 import { Message } from "ai";
 import { useChat, type MessageWithRag } from "@/hooks/use-chat-with-rag";
+import { useInngestChat } from "@/hooks/use-inngest-chat";
 import { useEffect, useState } from "react";
 import { Files } from "@/components/files";
 import { AnimatePresence, motion } from "framer-motion";
 import { FileIcon, InfoIcon } from "@/components/icons";
 import { Message as PreviewMessage } from "@/components/message";
 import { useScrollToBottom } from "@/components/use-scroll-to-bottom";
-import { generateSessionId, SESSION_ID_KEY } from "@/utils/constants";
+import { generateSessionId, SESSION_ID_KEY, USE_INNGEST_AI_KIT } from "@/utils/constants";
 import { RagVisualizer } from "@/components/rag-visualizer";
 
 const suggestedActions = [
@@ -41,6 +42,9 @@ export function Chat({
   const [isRagVisible, setIsRagVisible] = useState(false);
   const [currentRagData, setCurrentRagData] = useState<any[] | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  
+  // Add state for toggling between implementations
+  const [useInngest, setUseInngest] = useState(false);
 
   // Initialize or retrieve the session ID when the component mounts
   useEffect(() => {
@@ -56,7 +60,18 @@ export function Chat({
 
   useEffect(() => {
     setIsMounted(true);
+    
+    // Initialize or retrieve the toggle state when the component mounts
+    const storedUseInngest = localStorage.getItem(USE_INNGEST_AI_KIT);
+    setUseInngest(storedUseInngest === "true");
   }, []);
+  
+  // Save toggle state to localStorage
+  useEffect(() => {
+    if (isMounted) {
+      localStorage.setItem(USE_INNGEST_AI_KIT, useInngest.toString());
+    }
+  }, [useInngest, isMounted]);
   
   // Save selected file pathnames to localStorage
   useEffect(() => {
@@ -81,13 +96,41 @@ export function Chat({
     }
   }, [sessionId]);
 
-  const { messages, messagesWithRag, handleSubmit, input, setInput, append } = useChat({
-    body: { id, selectedFilePathnames, sessionId },
+  // Always call both hooks to maintain hook order consistency
+  // but only use the result from the appropriate one
+  const inngestChatResult = useInngestChat({
+    body: {
+      id,
+      selectedFilePathnames,
+      sessionId,
+      useInngest: true
+    },
     initialMessages,
     onFinish: () => {
       window.history.replaceState({}, "", `/${id}`);
     },
   });
+  
+  const regularChatResult = useChat({
+    body: {
+      id,
+      selectedFilePathnames,
+      sessionId,
+      useInngest: false
+    } as any, // Use type assertion to avoid TypeScript error
+    initialMessages,
+    onFinish: () => {
+      window.history.replaceState({}, "", `/${id}`);
+    },
+  });
+  
+  // Select which result to use based on the toggle
+  const chatHookResult = useInngest ? inngestChatResult : regularChatResult;
+  
+  // Extract common properties and handle isLoading separately
+  const { messages, messagesWithRag, handleSubmit, input, setInput, append } = chatHookResult;
+  // isLoading is only available in the Inngest implementation
+  const isLoading = 'isLoading' in chatHookResult ? (chatHookResult as any).isLoading : false;
   
   // Monitor messages for new assistant responses and get real RAG data
   useEffect(() => {
@@ -111,6 +154,21 @@ export function Chat({
   return (
     <div className="flex flex-row justify-center pb-20 h-dvh bg-white dark:bg-zinc-900">
       <div className="flex flex-col justify-between items-center gap-4">
+        {/* Add toggle for switching between implementations */}
+        <div className="w-full flex justify-end px-4 py-2">
+          <div className="flex items-center">
+            <span className="mr-2 text-sm text-zinc-500">Use Inngest AI-Kit</span>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={useInngest}
+                onChange={() => setUseInngest(!useInngest)}
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+        </div>
         <div
           ref={messagesContainerRef}
           className="flex flex-col gap-4 h-full w-dvw items-center overflow-y-scroll"
@@ -143,6 +201,7 @@ export function Chat({
                     append({
                       role: "user",
                       content: suggestedAction.action,
+                      id: Date.now().toString(),
                     });
                   }}
                   className="w-full text-left border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-300 rounded-lg p-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex flex-col"
@@ -198,6 +257,13 @@ export function Chat({
             </div>
           )}
         </form>
+        
+        {/* Add loading indicator for Inngest implementation */}
+        {isLoading && (
+          <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full">
+            Processing with Inngest AI-Kit...
+          </div>
+        )}
       </div>
 
       <AnimatePresence>

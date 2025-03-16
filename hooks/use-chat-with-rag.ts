@@ -136,7 +136,7 @@ const extractRagChunksFromMessage = (message: Message): RagChunk[] | null => {
 };
 
 // Custom hook that extends useChat to include RAG metadata
-export function useChat(options: Parameters<typeof useVercelChat>[0]) {
+export function useChat(options: Parameters<typeof useVercelChat>[0] & { body: { useInngest?: boolean } }) {
   // Use the original useChat hook
   const chatResult = useVercelChat(options);
   

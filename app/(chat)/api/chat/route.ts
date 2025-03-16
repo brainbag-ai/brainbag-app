@@ -1,9 +1,10 @@
 import { customModel } from "@/ai";
 import { createMessage, ensureSessionUser } from "@/app/db";
 import { streamText } from "ai";
+import { USE_INNGEST_AI_KIT } from "@/utils/constants";
 
 export async function POST(request: Request) {
-  const { id, messages, selectedFilePathnames, sessionId } = await request.json();
+  const { id, messages, selectedFilePathnames, sessionId, useInngest } = await request.json();
   
   if (!sessionId) {
     return new Response("Session ID is required", { status: 400 });
@@ -35,10 +36,41 @@ export async function POST(request: Request) {
     console.log("Initial API Request - Messages:", JSON.stringify(messages, null, 2));
     console.log("Initial API Request - Selected Files:", JSON.stringify(selectedFilePathnames, null, 2));
     console.log("Initial API Request - Session ID:", sessionId);
+    console.log("Initial API Request - Use Inngest:", useInngest);
   } catch (error) {
     console.log("Error logging Initial API Request:", error);
   }
 
+  // Check if we should use Inngest AI-Kit
+  if (useInngest) {
+    // Send the request to the Inngest API route
+    const inngestResponse = await fetch(`${request.headers.get('origin')}/api/chat/inngest`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messages,
+        selectedFilePathnames,
+        sessionId,
+        chatId: id,
+      }),
+    });
+
+    if (!inngestResponse.ok) {
+      return new Response("Failed to send message to Inngest", { status: 500 });
+    }
+
+    const inngestData = await inngestResponse.json();
+
+    // Return a response that the client can use to poll for results
+    return Response.json({
+      eventId: inngestData.eventId,
+      useInngest: true,
+    });
+  }
+
+  // Use the direct OpenAI integration
   const result = streamText({
     model: customModel,
     system:

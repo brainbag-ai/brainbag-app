@@ -10,3 +10,6 @@ export function generateSessionId() {
 
 // Local storage key for session ID
 export const SESSION_ID_KEY = "chat_session_id";
+
+// Local storage key for toggling between Inngest AI-Kit and direct OpenAI implementation
+export const USE_INNGEST_AI_KIT = "use-inngest-ai-kit";
