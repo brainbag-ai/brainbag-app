@@ -18,19 +18,30 @@ export function useInngestChat(options: {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [eventId, setEventId] = useState<string | null>(null);
+  const [isProcessingResponse, setIsProcessingResponse] = useState(false);
 
   // Poll for results if we have an eventId
   useEffect(() => {
-    if (!eventId) return;
+    if (!eventId || isProcessingResponse) return;
     
     const pollInterval = setInterval(async () => {
+      if (isProcessingResponse) {
+        clearInterval(pollInterval);
+        return;
+      }
+      
       try {
+        setIsProcessingResponse(true);
+        console.log("Polling for results with eventId:", eventId);
+        
         const response = await fetch(`/api/chat/inngest/poll?eventId=${eventId}`);
         const data = await response.json();
         
         if (data.completed) {
           clearInterval(pollInterval);
           setEventId(null);
+          
+          console.log("Received completed response:", data.response);
           
           // Add assistant message to the list
           const assistantMessage: MessageWithRag = {
@@ -48,14 +59,22 @@ export function useInngestChat(options: {
           }
           
           setIsLoading(false);
+        } else {
+          console.log("Response not completed yet, continuing to poll");
         }
+        
+        setIsProcessingResponse(false);
       } catch (error) {
         console.error("Error polling for results:", error);
+        setIsProcessingResponse(false);
       }
-    }, 1000);
+    }, 2000); // Increased polling interval to 2 seconds
     
-    return () => clearInterval(pollInterval);
-  }, [eventId, options.onFinish]);
+    return () => {
+      clearInterval(pollInterval);
+      setIsProcessingResponse(false);
+    };
+  }, [eventId, options.onFinish, isProcessingResponse]);
 
   // Function to handle form submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

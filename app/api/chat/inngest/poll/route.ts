@@ -22,12 +22,16 @@ export async function GET(request: Request) {
     // For now, let's skip the direct Inngest API call since it's returning a 405 error
     // Instead, we'll simulate a successful response after a short delay
     
+    // Generate a unique response ID to help with debugging
+    const responseId = Math.random().toString(36).substring(2, 10);
+    console.log(`Generating response with ID: ${responseId} for event: ${eventId}`);
+    
     // Simulate a delay to make it feel like we're waiting for a response
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Return a simulated successful response
     return Response.json({
-      response: `This is a response from the Inngest AI-Kit for event ${eventId}.
+      response: `This is a response from the Inngest AI-Kit for event ${eventId} (Response ID: ${responseId}).
       
 In a production environment, this would be the actual response from the Inngest function.`,
       completed: true,
