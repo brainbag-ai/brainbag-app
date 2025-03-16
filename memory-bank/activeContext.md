@@ -4,8 +4,16 @@
 - Optimizing the RAG system to improve relevance and efficiency
 - Refining how chat messages are stored and retrieved for context
 - Ensuring only user messages are used for RAG context retrieval
+- Fixing issues with the Inngest AI-Kit implementation
+- Ensuring proper communication between the chat interface and Inngest functions
 
 ## Recent Changes
+- Fixed issues with the Inngest chat implementation:
+  - Resolved React hooks order violation in the Chat component
+  - Fixed polling mechanism to properly handle Inngest responses
+  - Updated Inngest function to include better error handling and logging
+  - Added timeout mechanism to prevent UI from getting stuck
+  - Ensured proper response display in the chat interface
 - Modified the RAG system to store only user messages in the chunks table
 - Updated the createMessage function to filter messages by role
 - Maintained all messages in the chat record while optimizing the chunks table
@@ -13,6 +21,8 @@
 - Updated the system prompt to inform the AI that all user messages are being recorded and can be retrieved for context
 
 ## Next Steps
+- Continue refining the Inngest AI-Kit implementation
+- Explore streaming response options with Inngest
 - Complete memory bank initialization with progress.md
 - Create .clinerules file to capture project intelligence
 - Explore the codebase in more detail to refine documentation
@@ -32,6 +42,8 @@
 - **Package Installation**: Must use `npm install --legacy-peer-deps` due to peer dependency conflicts
 
 ## Current Questions
+- How can we implement streaming responses with Inngest AI-Kit?
+- What's the best way to handle Inngest function completion status?
 - What specific AI provider is being used?
 - How is the RAG middleware implemented?
 - What is the database schema structure?

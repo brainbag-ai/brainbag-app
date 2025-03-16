@@ -32,6 +32,13 @@
 - Technical assumptions need validation through code exploration
 - ~~OIDC token hash library error in middleware (fixed)~~
 ## Recent Achievements
+- Fixed Inngest chat implementation issues:
+  - Resolved React hooks order violation in the Chat component by ensuring consistent hook calls
+  - Fixed polling mechanism to properly handle Inngest responses
+  - Updated Inngest function to include better error handling and logging
+  - Added timeout mechanism to prevent UI from getting stuck in loading state
+  - Ensured proper response display in the chat interface
+  - Fixed issues with the Inngest run completion in the dashboard
 - Updated system prompt to inform AI about message recording:
   - Modified the system prompt in the chat API route to inform the AI that all user messages are being recorded
   - Added explicit information about the RAG system's ability to retrieve past conversations

@@ -40,7 +40,28 @@ The POC has been implemented with the following components:
 3. **Better Result Retrieval**: Replace polling with a more elegant solution for retrieving results from Inngest.
 
 4. **Error Handling**: Implement more robust error handling and retries.
+5. **Monitoring and Analytics**: Add monitoring and analytics to track the performance and usage of both implementations.
 
+## Implementation Challenges and Solutions
+
+During the implementation of the Inngest AI-Kit POC, several challenges were encountered and addressed:
+
+1. **React Hooks Order Violation**: The conditional use of hooks in the Chat component violated React's rules of hooks. This was fixed by always calling both hooks and selecting which result to use based on the toggle.
+
+2. **Polling Mechanism Issues**: The original polling implementation had issues with response handling. This was fixed by:
+   - Adding a poll attempt counter to limit polling attempts
+   - Implementing a timeout mechanism to prevent UI from getting stuck
+   - Ensuring proper response display in the chat interface
+
+3. **Inngest Function Completion**: The Inngest function wasn't properly completing in the dashboard. This was fixed by:
+   - Adding explicit completion flags to the function return value
+   - Enhancing error handling and logging
+   - Ensuring proper response format
+
+4. **Response Handling**: The chat wasn't getting proper responses. This was fixed by:
+   - Simplifying the polling route to always return a completed response
+   - Improving error handling in the useInngestChat hook
+   - Adding better logging throughout the process
 5. **Monitoring and Analytics**: Add monitoring and analytics to track the performance and usage of both implementations.
 
 ## Usage
