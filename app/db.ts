@@ -42,10 +42,12 @@ export async function createMessage({
   id,
   messages,
   author,
+  ragMetadata,
 }: {
   id: string;
   messages: any;
   author: string;
+  ragMetadata?: any;
 }) {
   const selectedChats = await db.select().from(chat).where(eq(chat.id, id));
   const now = new Date();
@@ -59,23 +61,35 @@ export async function createMessage({
       id,
       createdAt: now,
       messages: JSON.stringify(messages),
+      metadata: ragMetadata ? JSON.stringify({ rag: ragMetadata }) : null,
       author,
     });
     chatExists = true;
   } else {
     // Update the existing chat record
-    await db
-      .update(chat)
-      .set({
-        messages: JSON.stringify(messages),
-      })
-      .where(eq(chat.id, id));
+    if (ragMetadata) {
+      await db
+        .update(chat)
+        .set({
+          messages: JSON.stringify(messages),
+          metadata: JSON.stringify({ rag: ragMetadata }),
+        })
+        .where(eq(chat.id, id));
+    } else {
+      await db
+        .update(chat)
+        .set({
+          messages: JSON.stringify(messages),
+        })
+        .where(eq(chat.id, id));
+    }
   }
   
   // Now that we're sure the chat record exists, we can add the message to chunks
   const lastMessage = messages[messages.length - 1];
   
-  if (lastMessage && chatExists) {
+  // Only add user messages to the chunks table, not assistant responses
+  if (lastMessage && chatExists && lastMessage.role === 'user') {
     try {
       // Generate embedding for the message content
       let messageContent = '';

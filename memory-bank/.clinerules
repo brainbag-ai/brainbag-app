@@ -32,6 +32,11 @@
 - TypeScript for type safety
 - Tailwind CSS for styling
 - Custom components for UI elements
+- Command line utilities for maintenance tasks:
+  - `npm run cleanup`: Delete all chunks, chats, files, and optionally users
+  - `npm run cleanup -- --preserve-users`: Delete everything except user accounts
+  - `npm run cleanup -- --dry-run`: Show what would be deleted without deleting
+  - `npm run cleanup -- --help`: Show help message
 
 ## Learning Journal
 

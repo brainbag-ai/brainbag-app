@@ -92,6 +92,15 @@ export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
     // Take top 5 chunks
     const topChunks = chunksWithSimilarity.slice(0, 5);
 
+    // Prepare the top chunks with metadata for visualization
+    const topChunksWithMetadata = topChunks.map(chunk => ({
+      content: chunk.content,
+      similarity: chunk.similarity,
+      source: chunk.filePath ? 'file' : 'chat',
+      filePath: chunk.filePath,
+      id: chunk.id
+    }));
+
     // add the chunks to the last user message
     messages.push({
       role: "user",
@@ -108,6 +117,42 @@ export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
       ],
     });
 
-    return { ...params, prompt: messages };
+    // Log the exact prompt that will be sent to the OpenAI API
+    // Use a safer approach to avoid circular references
+    try {
+      console.log("OpenAI API Prompt - Messages:", JSON.stringify(messages, null, 2));
+      console.log("OpenAI API Prompt - Parameters:", JSON.stringify({
+        temperature: params.temperature,
+        maxTokens: params.maxTokens,
+        topP: params.topP,
+        presencePenalty: params.presencePenalty,
+        frequencyPenalty: params.frequencyPenalty
+      }, null, 2));
+    } catch (error) {
+      console.log("Error logging OpenAI API Prompt:", error);
+    }
+
+    // Return the params with the chunks metadata
+    return { 
+      ...params, 
+      prompt: messages,
+      ragMetadata: {
+        chunks: topChunksWithMetadata
+      },
+      // Add the metadata to the response data
+      data: {
+        ragMetadata: {
+          chunks: topChunksWithMetadata
+        }
+      },
+      // Add the metadata to the response
+      response: {
+        data: {
+          ragMetadata: {
+            chunks: topChunksWithMetadata
+          }
+        }
+      }
+    };
   },
 };

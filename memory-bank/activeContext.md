@@ -1,13 +1,16 @@
 # Active Context
 
 ## Current Focus
-- Initial memory bank setup for the project
-- Understanding the project structure and components
-- Documenting the system architecture and technologies
+- Optimizing the RAG system to improve relevance and efficiency
+- Refining how chat messages are stored and retrieved for context
+- Ensuring only user messages are used for RAG context retrieval
 
 ## Recent Changes
-- Created memory bank directory and core documentation files
-- Documented project brief, product context, system patterns, and technical context
+- Modified the RAG system to store only user messages in the chunks table
+- Updated the createMessage function to filter messages by role
+- Maintained all messages in the chat record while optimizing the chunks table
+- Documented the changes in the memory bank
+- Updated the system prompt to inform the AI that all user messages are being recorded and can be retrieved for context
 
 ## Next Steps
 - Complete memory bank initialization with progress.md
@@ -16,6 +19,7 @@
 - Understand the specific AI integration and RAG implementation
 - Examine the database schema and authentication system
 - Review the chat interface components and functionality
+- Document the new cleanup command in the memory bank
 
 ## Active Decisions and Considerations
 - Documentation is based on initial analysis of the project structure

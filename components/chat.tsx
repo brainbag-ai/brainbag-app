@@ -1,14 +1,15 @@
 "use client";
 
 import { Message } from "ai";
-import { useChat } from "ai/react";
+import { useChat, type MessageWithRag } from "@/hooks/use-chat-with-rag";
 import { useEffect, useState } from "react";
 import { Files } from "@/components/files";
 import { AnimatePresence, motion } from "framer-motion";
-import { FileIcon } from "@/components/icons";
+import { FileIcon, InfoIcon } from "@/components/icons";
 import { Message as PreviewMessage } from "@/components/message";
 import { useScrollToBottom } from "@/components/use-scroll-to-bottom";
 import { generateSessionId, SESSION_ID_KEY } from "@/utils/constants";
+import { RagVisualizer } from "@/components/rag-visualizer";
 
 const suggestedActions = [
   {
@@ -37,6 +38,8 @@ export function Chat({
     Array<string>
   >([]);
   const [isFilesVisible, setIsFilesVisible] = useState(false);
+  const [isRagVisible, setIsRagVisible] = useState(false);
+  const [currentRagData, setCurrentRagData] = useState<any[] | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
   // Initialize or retrieve the session ID when the component mounts
@@ -78,13 +81,29 @@ export function Chat({
     }
   }, [sessionId]);
 
-  const { messages, handleSubmit, input, setInput, append } = useChat({
+  const { messages, messagesWithRag, handleSubmit, input, setInput, append } = useChat({
     body: { id, selectedFilePathnames, sessionId },
     initialMessages,
     onFinish: () => {
       window.history.replaceState({}, "", `/${id}`);
     },
   });
+  
+  // Monitor messages for new assistant responses and get real RAG data
+  useEffect(() => {
+    if (messagesWithRag.length > 0 && messagesWithRag[messagesWithRag.length - 1].role === 'assistant') {
+      // Get the last message which should have the RAG metadata
+      const lastMessage = messagesWithRag[messagesWithRag.length - 1];
+      
+      // Check if the message has RAG metadata
+      if (lastMessage.ragMetadata?.chunks && lastMessage.ragMetadata.chunks.length > 0) {
+        setCurrentRagData(lastMessage.ragMetadata.chunks);
+      } else {
+        // No RAG data available for this response
+        setCurrentRagData(null);
+      }
+    }
+  }, [messagesWithRag]);
 
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();
@@ -167,6 +186,17 @@ export function Chat({
               {selectedFilePathnames?.length}
             </motion.div>
           </div>
+          
+          {/* Add RAG visualization toggle button */}
+          {currentRagData && (
+            <div
+              className="relative text-sm bg-zinc-100 rounded-lg size-9 flex-shrink-0 flex flex-row items-center justify-center cursor-pointer hover:bg-zinc-200 dark:text-zinc-50 dark:bg-zinc-700 dark:hover:bg-zinc-800"
+              onClick={() => setIsRagVisible(!isRagVisible)}
+              title="Show RAG context"
+            >
+              <InfoIcon />
+            </div>
+          )}
         </form>
       </div>
 
@@ -179,6 +209,13 @@ export function Chat({
           />
         )}
       </AnimatePresence>
+      
+      {/* Add RAG visualizer component */}
+      <RagVisualizer 
+        chunks={currentRagData} 
+        isVisible={isRagVisible} 
+        toggleVisibility={() => setIsRagVisible(false)} 
+      />
     </div>
   );
 }

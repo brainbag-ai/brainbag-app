@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "generate-migration": "tsx generate-migration.ts",
-    "migrate": "tsx migrate.ts"
+    "migrate": "tsx migrate.ts",
+    "cleanup": "tsx cleanup.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.0.10",
