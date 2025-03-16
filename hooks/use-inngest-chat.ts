@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Message } from "ai";
 import { RagChunk, RagMetadata, MessageWithRag } from "./use-chat-with-rag";
 
@@ -19,10 +19,14 @@ export function useInngestChat(options: {
   const [isLoading, setIsLoading] = useState(false);
   const [eventId, setEventId] = useState<string | null>(null);
   const [isProcessingResponse, setIsProcessingResponse] = useState(false);
+  const pollAttempts = useRef(0);
 
   // Poll for results if we have an eventId
   useEffect(() => {
     if (!eventId || isProcessingResponse) return;
+    
+    // Reset poll attempts when we start polling for a new event
+    pollAttempts.current = 0;
     
     const pollInterval = setInterval(async () => {
       if (isProcessingResponse) {
@@ -37,7 +41,10 @@ export function useInngestChat(options: {
         const response = await fetch(`/api/chat/inngest/poll?eventId=${eventId}`);
         const data = await response.json();
         
+        console.log("Poll response:", data);
+        
         if (data.completed) {
+          // The run has completed, so we can stop polling
           clearInterval(pollInterval);
           setEventId(null);
           
@@ -60,7 +67,36 @@ export function useInngestChat(options: {
           
           setIsLoading(false);
         } else {
-          console.log("Response not completed yet, continuing to poll");
+          // The run is still in progress, so we'll continue polling
+          console.log(`Response not completed yet (status: ${data.status}), continuing to poll`);
+          
+          // Use a counter to limit polling attempts
+          pollAttempts.current += 1;
+          
+          // If we've polled more than 10 times, stop and show an error message
+          if (pollAttempts.current > 10) {
+            clearInterval(pollInterval);
+            setEventId(null);
+            
+            console.log("Polling timeout reached, stopping poll");
+            
+            // Add error message to the list
+            const errorMessage: MessageWithRag = {
+              role: "assistant",
+              content: "Sorry, the Inngest run is taking longer than expected. Please try again later.",
+              id: Date.now().toString(),
+            };
+            
+            setMessages((prev) => [...prev, errorMessage]);
+            setMessagesWithRag((prev) => [...prev, errorMessage]);
+            
+            // Call onFinish callback if provided
+            if (options.onFinish) {
+              options.onFinish();
+            }
+            
+            setIsLoading(false);
+          }
         }
         
         setIsProcessingResponse(false);
