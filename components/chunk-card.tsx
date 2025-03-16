@@ -21,7 +21,7 @@ export function ChunkCard({ chunk, index }: { chunk: any; index: number }) {
           ) : (
             <ChatIcon className="h-4 w-4 mr-2 text-purple-500" />
           )}
-          <span className="text-xs font-medium">
+          <span className="text-xs font-medium text-white">
             {chunk.source === 'file' 
               ? `File: ${chunk.filePath?.split('/').pop()}` 
               : 'Chat History'}
@@ -29,14 +29,12 @@ export function ChunkCard({ chunk, index }: { chunk: any; index: number }) {
         </div>
         <div className="flex items-center">
           <div className={`h-2 w-2 rounded-full ${scoreColor} mr-1`}></div>
-          <span className="text-xs">{(chunk.similarity * 100).toFixed(0)}%</span>
+          <span className="text-xs text-white">{(chunk.similarity * 100).toFixed(0)}%</span>
         </div>
       </div>
       
-      <div className="text-sm text-zinc-700 dark:text-zinc-300 max-h-24 overflow-y-auto">
-        {chunk.content.length > 150 
-          ? `${chunk.content.substring(0, 150)}...` 
-          : chunk.content}
+      <div className="text-sm text-white max-h-48 overflow-y-auto">
+        {chunk.content}
       </div>
     </div>
   );

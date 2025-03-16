@@ -51,13 +51,17 @@ export async function POST(request: Request) {
       sessionId: sessionId,
     },
     onFinish: async ({ text }) => {
-      // Get the RAG metadata from the model's response
-      // In a real implementation, we would extract this from the response
-      // For now, we'll just store the assistant's message
+      // For now, we'll just store the assistant's message without RAG metadata
+      // The RAG metadata will be added to the response by the middleware
+      
+      // Store the assistant's message
       await createMessage({
         id,
-        messages: [...messages, { role: "assistant", content: text }],
-        author: userId,
+        messages: [...messages, { 
+          role: "assistant", 
+          content: text
+        }],
+        author: userId
       });
     },
     experimental_telemetry: {
@@ -67,5 +71,10 @@ export async function POST(request: Request) {
   });
 
   // Return the response
-  return result.toDataStreamResponse({});
+  return result.toDataStreamResponse({
+    // Add the RAG metadata as custom headers
+    headers: {
+      'X-RAG-Metadata': 'true'
+    }
+  });
 }

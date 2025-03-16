@@ -138,6 +138,20 @@ export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
       prompt: messages,
       ragMetadata: {
         chunks: topChunksWithMetadata
+      },
+      // Add the metadata to the response data
+      data: {
+        ragMetadata: {
+          chunks: topChunksWithMetadata
+        }
+      },
+      // Add the metadata to the response
+      response: {
+        data: {
+          ragMetadata: {
+            chunks: topChunksWithMetadata
+          }
+        }
       }
     };
   },

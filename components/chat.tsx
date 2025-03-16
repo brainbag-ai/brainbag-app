@@ -1,7 +1,7 @@
 "use client";
 
 import { Message } from "ai";
-import { useChat } from "ai/react";
+import { useChat, type MessageWithRag } from "@/hooks/use-chat-with-rag";
 import { useEffect, useState } from "react";
 import { Files } from "@/components/files";
 import { AnimatePresence, motion } from "framer-motion";
@@ -81,7 +81,7 @@ export function Chat({
     }
   }, [sessionId]);
 
-  const { messages, handleSubmit, input, setInput, append } = useChat({
+  const { messages, messagesWithRag, handleSubmit, input, setInput, append } = useChat({
     body: { id, selectedFilePathnames, sessionId },
     initialMessages,
     onFinish: () => {
@@ -89,49 +89,21 @@ export function Chat({
     },
   });
   
-  // Monitor messages for new assistant responses and generate mock RAG data
+  // Monitor messages for new assistant responses and get real RAG data
   useEffect(() => {
-    if (messages.length > 0 && messages[messages.length - 1].role === 'assistant') {
-      // Create mock RAG data for demonstration
-      const mockRagData = [
-        {
-          content: "This is a sample chunk from a document that was used to answer the question.",
-          similarity: 0.92,
-          source: 'file',
-          filePath: 'sample-document.pdf',
-          id: 'doc-1'
-        },
-        {
-          content: "Here's another relevant chunk from the document with additional context.",
-          similarity: 0.85,
-          source: 'file',
-          filePath: 'sample-document.pdf',
-          id: 'doc-2'
-        },
-        {
-          content: "This chunk comes from a previous conversation in the chat history.",
-          similarity: 0.78,
-          source: 'chat',
-          id: 'chat-1'
-        },
-        {
-          content: "This is a less relevant chunk but still provided some context.",
-          similarity: 0.65,
-          source: 'file',
-          filePath: 'another-document.txt',
-          id: 'doc-3'
-        },
-        {
-          content: "This chunk had minimal relevance but was included in the top results.",
-          similarity: 0.52,
-          source: 'chat',
-          id: 'chat-2'
-        }
-      ];
+    if (messagesWithRag.length > 0 && messagesWithRag[messagesWithRag.length - 1].role === 'assistant') {
+      // Get the last message which should have the RAG metadata
+      const lastMessage = messagesWithRag[messagesWithRag.length - 1];
       
-      setCurrentRagData(mockRagData);
+      // Check if the message has RAG metadata
+      if (lastMessage.ragMetadata?.chunks && lastMessage.ragMetadata.chunks.length > 0) {
+        setCurrentRagData(lastMessage.ragMetadata.chunks);
+      } else {
+        // No RAG data available for this response
+        setCurrentRagData(null);
+      }
     }
-  }, [messages]);
+  }, [messagesWithRag]);
 
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();
