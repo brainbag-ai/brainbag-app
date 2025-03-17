@@ -1,5 +1,6 @@
 import { inngest } from "./client";
 import { chatAgent } from "./ai-agent";
+import { openai } from "inngest";
 
 export const helloWorld = inngest.createFunction(
   { id: "hello-world" },
@@ -45,57 +46,68 @@ export const handleChat = inngest.createFunction(
   { event: "chat/message" },
   async ({ event, step }) => {
     try {
-      // Extract data from the event
-      const { messages, ragContext, sessionId } = event.data;
+      const { messages, ragContext, sessionId, selectedFilePathnames } = event.data;
       
       console.log("Starting handleChat function with sessionId:", sessionId);
-      console.log("Event data:", JSON.stringify(event.data));
       
-      // Process with AI-Kit
-      const response = await step.run("process-with-ai-kit", async () => {
+      // Get the last user message
+      const lastMessage = messages[messages.length - 1];
+      const userContent = typeof lastMessage?.content === 'string'
+        ? lastMessage.content
+        : lastMessage?.content?.filter((c: any) => c.type === 'text')?.map((c: any) => c.text)?.join("\n") || "No content provided";
+      
+      console.log("Processing message with content:", userContent);
+      
+      // Prepare the context from RAG if available
+      let contextPrompt = "";
+      if (ragContext && ragContext.trim() !== "") {
+        contextPrompt = `\n\nHere is some relevant context that might help you answer:\n${ragContext}`;
+      }
+      
         try {
-          console.log("Processing chat message with Inngest AI-Kit");
+          console.log("Trying to use agent-kit server...");
           
-          // Get the last user message
-          const lastMessage = messages[messages.length - 1];
-          const userContent = lastMessage?.content || "No content provided";
+          // The agent-kit server should be running on port 3001
+          const agentResponse = await fetch('http://localhost:3001/agents/Chat%20Agent/run', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              input: userContent + contextPrompt,
+            }),
+          });
           
-          console.log("Processing message with content:", userContent);
+          if (!agentResponse.ok) {
+            throw new Error(`Agent server returned ${agentResponse.status}: ${await agentResponse.text()}`);
+          }
           
-          // Return a simple response for now
-          const result = {
-            content: `This is a response from Inngest AI-Kit. You asked: "${userContent}".
+          const agentResult = await agentResponse.json();
+          console.log("AI-Kit response from agent server:", agentResult);
+          
+          return {
+            response: agentResult.output || "No response generated from AI model.",
+            sessionId,
+            completed: true,
+            timestamp: new Date().toISOString(),
+            status: "success"
+          };
+        } catch (serverError) {
+          console.error("Error calling agent-kit server:", serverError);
+          
+          // Return a fallback response
+          return {
+            response: `I couldn't connect to the AI service at the moment. Please make sure the agent-kit server is running with 'npm run agent-server'.
             
-In a production environment, this would be processed by the AI model.`
-          };
-          
-          console.log("AI-Kit response generated:", result);
-          
-          return {
-            content: result.content
-          };
-        } catch (error) {
-          console.error("Error in process-with-ai-kit step:", error);
-          return {
-            content: "Sorry, there was an error processing your message with AI-Kit. Please try again later."
+You asked: "${userContent}"
+
+I'll try to help you as soon as the service is back online.`,
+            sessionId,
+            completed: true,
+            error: true,
+            timestamp: new Date().toISOString()
           };
         }
-      });
-      
-      console.log("handleChat function completed successfully");
-      
-      // Return the final result with a clear response
-      const finalResponse = {
-        response: response.content,
-        sessionId: sessionId,
-        completed: true,
-        timestamp: new Date().toISOString(),
-        status: "success"
-      };
-      
-      console.log("Returning final response:", finalResponse);
-      
-      return finalResponse;
     } catch (error: any) {
       console.error("Error in handleChat function:", error);
       

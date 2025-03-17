@@ -14,6 +14,12 @@
   - Updated Inngest function to include better error handling and logging
   - Added timeout mechanism to prevent UI from getting stuck
   - Ensured proper response display in the chat interface
+  - Implemented a more robust polling mechanism that attempts to get real results from Inngest
+  - Added fallback responses based on event information when direct API access fails
+  - Created a simple agent server to simulate AI agent responses
+  - Implemented proper integration with the agent server in the Inngest function
+  - Added fallback mechanisms when the agent server is not available
+  - Fixed TypeScript compilation issues by using plain JavaScript for the agent server
 - Modified the RAG system to store only user messages in the chunks table
 - Updated the createMessage function to filter messages by role
 - Maintained all messages in the chat record while optimizing the chunks table
